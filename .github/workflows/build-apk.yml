@@ -1,0 +1,41 @@
+name: Build Android APK from ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip "MehdiNabavi_Personal_App_Source_GitHub_APK_Build.zip" -d extracted
+          find extracted -maxdepth 4 -type f | head -80
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make Gradle executable
+        run: |
+          chmod +x extracted/android-app/gradlew || true
+
+      - name: Build APK
+        run: |
+          cd extracted/android-app
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MehdiNabavi-App-debug-apk
+          path: extracted/android-app/app/build/outputs/apk/debug/*.apk
