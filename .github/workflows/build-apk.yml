@@ -17,7 +17,7 @@ jobs:
       - name: Unzip project
         run: |
           unzip "MehdiNabavi_Personal_App_Source_GitHub_APK_Build.zip" -d extracted
-          find extracted -maxdepth 4 -type f | head -80
+          find extracted -maxdepth 5 -type f | head -100
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -25,17 +25,23 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Find Android project
+        run: |
+          ANDROID_DIR=$(find extracted -type f -name "gradlew" -exec dirname {} \; | head -n 1)
+          echo "ANDROID_DIR=$ANDROID_DIR" >> $GITHUB_ENV
+          echo "Found Android project at: $ANDROID_DIR"
+
       - name: Make Gradle executable
         run: |
-          chmod +x extracted/android-app/gradlew || true
+          chmod +x "$ANDROID_DIR/gradlew"
 
       - name: Build APK
         run: |
-          cd extracted/android-app
+          cd "$ANDROID_DIR"
           ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: MehdiNabavi-App-debug-apk
-          path: extracted/android-app/app/build/outputs/apk/debug/*.apk
+          path: extracted/**/app/build/outputs/apk/debug/*.apk
